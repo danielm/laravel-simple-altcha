@@ -1,57 +1,57 @@
-import 'altcha';
-import {
-    forwardRef,
-    useEffect,
-    useImperativeHandle,
-    useRef,
-    type HTMLAttributes,
-} from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
+
+// Importing the altcha package registers the <altcha-widget> custom element.
+import 'altcha'
+// Official JSX typings for <altcha-widget> (no custom .d.ts needed).
+import type {} from 'altcha/types/react'
+import type { WidgetAttributes, WidgetMethods } from 'altcha/types'
 
 export type AltchaHandle = {
     /** Clear the solved state and fetch a fresh challenge. Call after every submit. */
-    reset: () => void;
-};
+    reset: () => void
+}
 
-type Props = Omit<HTMLAttributes<HTMLElement>, 'onChange'> & {
+type Props = {
     /** Endpoint that returns a challenge (route name: altcha.challenge). */
-    challengeUrl?: string;
+    challengeUrl?: string
     /** Called with the base64 payload once verified, and with '' otherwise. */
-    onChange: (payload: string) => void;
-    /** Any other <altcha-widget> string attribute, e.g. auto="onsubmit", type="checkbox", language="de". */
-    [attribute: string]: unknown;
-};
+    onChange: (payload: string) => void
+}
 
 export const AltchaWidget = forwardRef<AltchaHandle, Props>(function AltchaWidget(
-    { challengeUrl = '/altcha/challenge', onChange, ...rest },
+    { challengeUrl = '/altcha/challenge', onChange },
     handle,
 ) {
-    const el = useRef<any>(null);
-    const onChangeRef = useRef(onChange);
-    onChangeRef.current = onChange; // keeps the listener stable without stale closures
+    const widget = useRef<WidgetAttributes & WidgetMethods & HTMLElement>(null)
+    const onChangeRef = useRef(onChange)
+    onChangeRef.current = onChange // keeps the listener stable without stale closures
 
     useImperativeHandle(handle, () => ({
         reset: () => {
-            el.current?.reset?.();
-            onChangeRef.current('');
+            // Widget methods only exist after its "load" event, hence the optional call.
+            widget.current?.reset?.()
+            onChangeRef.current('')
         },
-    }));
+    }))
 
     useEffect(() => {
-        const node = el.current;
-        if (!node) return;
+        const node = widget.current
+        if (!node) return
 
         const onState = (ev: Event) => {
-            const detail = (ev as CustomEvent).detail;
-            onChangeRef.current(detail?.state === 'verified' && detail.payload ? detail.payload : '');
-        };
+            const detail = (ev as CustomEvent).detail
+            onChangeRef.current(detail?.state === 'verified' && detail.payload ? detail.payload : '')
+        }
 
-        node.addEventListener('statechange', onState);
+        node.addEventListener('statechange', onState)
 
-        // Important with SPA navigation: otherwise the widget keeps working after unmount.
-        return () => node.removeEventListener('statechange', onState);
-    }, []);
+        // Important with SPA navigation: otherwise the listener outlives the component.
+        return () => node.removeEventListener('statechange', onState)
+    }, [])
 
-    return <altcha-widget ref={el} challengeurl={challengeUrl} {...(rest as object)} />;
-});
+    // v2 widget: the attribute is `challenge` (a URL or challenge data). `challengeurl` was v1.
+    // Add other attributes here as needed: auto="onsubmit", type="checkbox", language="de", ...
+    return <altcha-widget ref={widget} challenge={challengeUrl} />
+})
 
-export default AltchaWidget;
+export default AltchaWidget
