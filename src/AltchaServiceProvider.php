@@ -63,7 +63,6 @@ class AltchaServiceProvider extends ServiceProvider
 
             $this->publishes([
                 __DIR__.'/../stubs/react/altcha-widget.tsx' => resource_path('js/components/altcha-widget.tsx'),
-                __DIR__.'/../stubs/react/altcha.d.ts' => resource_path('js/types/altcha.d.ts'),
             ], 'altcha-react');
         }
     }
