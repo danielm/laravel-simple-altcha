@@ -24,6 +24,8 @@ npm install altcha
 ALTCHA_HMAC_SECRET=
 ```
 
+All supported variables are documented in [`.env.example`](.env.example).
+
 Optional publishing:
 
 ```bash
