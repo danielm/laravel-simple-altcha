@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
+import { ComponentPropsWithoutRef, forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 
 // Importing the altcha package registers the <altcha-widget> custom element.
 import 'altcha'
@@ -11,15 +11,15 @@ export type AltchaHandle = {
     reset: () => void
 }
 
-type Props = {
+type Props = Omit<ComponentPropsWithoutRef<'altcha-widget'>, 'challenge'> & {
     /** Endpoint that returns a challenge (route name: altcha.challenge). */
     challengeUrl?: string
     /** Called with the base64 payload once verified, and with '' otherwise. */
-    onChange: (payload: string) => void
+    onChange?: (payload: string) => void
 }
 
 export const AltchaWidget = forwardRef<AltchaHandle, Props>(function AltchaWidget(
-    { challengeUrl = '/altcha/challenge', onChange },
+    { challengeUrl = '/altcha/challenge', onChange, ...widgetProps },
     handle,
 ) {
     const widget = useRef<WidgetAttributes & WidgetMethods & HTMLElement>(null)
@@ -30,7 +30,9 @@ export const AltchaWidget = forwardRef<AltchaHandle, Props>(function AltchaWidge
         reset: () => {
             // Widget methods only exist after its "load" event, hence the optional call.
             widget.current?.reset?.()
-            onChangeRef.current('')
+            if (onChangeRef.current) {
+                onChangeRef.current('');
+            }
         },
     }))
 
@@ -40,7 +42,9 @@ export const AltchaWidget = forwardRef<AltchaHandle, Props>(function AltchaWidge
 
         const onState = (ev: Event) => {
             const detail = (ev as CustomEvent).detail
-            onChangeRef.current(detail?.state === 'verified' && detail.payload ? detail.payload : '')
+            if (onChangeRef.current) {
+                onChangeRef.current(detail?.state === 'verified' && detail.payload ? detail.payload : '')
+            }
         }
 
         node.addEventListener('statechange', onState)
@@ -51,7 +55,7 @@ export const AltchaWidget = forwardRef<AltchaHandle, Props>(function AltchaWidge
 
     // v2 widget: the attribute is `challenge` (a URL or challenge data). `challengeurl` was v1.
     // Add other attributes here as needed: auto="onsubmit", type="checkbox", language="de", ...
-    return <altcha-widget ref={widget} challenge={challengeUrl} />
+    return <altcha-widget ref={widget} challenge={challengeUrl} {...widgetProps} />
 })
 
 export default AltchaWidget

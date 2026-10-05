@@ -77,4 +77,9 @@ return [
     */
     'testing_bypass' => env('ALTCHA_TESTING_BYPASS'),
 
+    /*
+      Optional. Comma separated route names on wich the VerifyGlobalAltcha 
+      middleware will verify if enabled.
+    */
+    'verify_routes' => env('ALTCHA_VERIFY_ROUTES', []), 
 ];

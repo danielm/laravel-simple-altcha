@@ -37,7 +37,6 @@ php artisan vendor:publish --tag=altcha-react    # React component + JSX types
 The `altcha-react` tag copies:
 
 - `resources/js/components/altcha-widget.tsx`
-- `resources/js/types/altcha.d.ts`
 
 ## Backend
 
@@ -66,12 +65,27 @@ $result->verified;  // bool
 $result->reason;    // missing | malformed | expired | invalid | replayed
 ```
 
+Or global middleware (in bootstrap/app.php):
+
+```php
+$middleware->web(append: [
+    //... other laravel middlewares
+    VerifyGlobalAltcha::class,
+]);
+```
+
+In this case you must also define `ALTCHA_VERIFY_ROUTES` to specify what route (names) to check:
+
+```dotenv
+ALTCHA_VERIFY_ROUTES=login.store,register.store
+```
+
 ## Frontend (Inertia + React)
 
 ```tsx
 import { useRef } from 'react';
 import { useForm } from '@inertiajs/react';
-import { AltchaWidget, type AltchaHandle } from '@/components/altcha-widget';
+import AltchaWidget, { AltchaHandle } from '@/components/altcha-widget';
 
 export default function Contact() {
     const altcha = useRef<AltchaHandle>(null);

@@ -10,6 +10,7 @@ use AltchaOrg\Altcha\Altcha;
 use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Support\ServiceProvider;
 use Danielm\LaravelSimpleAltcha\Http\Middleware\VerifyAltcha;
+use Illuminate\Routing\Router;
 
 class AltchaServiceProvider extends ServiceProvider
 {
@@ -42,7 +43,7 @@ class AltchaServiceProvider extends ServiceProvider
         $this->app->alias(AltchaManager::class, 'altcha');
     }
 
-    public function boot(): void
+    public function boot(Router $router): void
     {
         $this->loadTranslationsFrom(__DIR__.'/../lang', 'altcha');
 
@@ -50,7 +51,7 @@ class AltchaServiceProvider extends ServiceProvider
             $this->loadRoutesFrom(__DIR__.'/../routes/altcha.php');
         }
 
-        $this->app['router']->aliasMiddleware('altcha', VerifyAltcha::class);
+        $router->aliasMiddleware('altcha', VerifyAltcha::class);
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
