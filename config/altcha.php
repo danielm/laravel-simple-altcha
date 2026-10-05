@@ -81,5 +81,5 @@ return [
       Optional. Comma separated route names on wich the VerifyGlobalAltcha 
       middleware will verify if enabled.
     */
-    'verify_routes' => env('ALTCHA_VERIFY_ROUTES', []), 
+    'verify_routes' => explode(',', env('ALTCHA_VERIFY_ROUTES', '')), 
 ];
