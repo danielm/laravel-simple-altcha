@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef, forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
+import { ComponentPropsWithoutRef, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 // Importing the altcha package registers the <altcha-widget> custom element.
 import 'altcha'
@@ -24,7 +24,12 @@ export const AltchaWidget = forwardRef<AltchaHandle, Props>(function AltchaWidge
 ) {
     const widget = useRef<WidgetAttributes & WidgetMethods & HTMLElement>(null)
     const onChangeRef = useRef(onChange)
+    const [mounted, setMounted] = useState(false)
     onChangeRef.current = onChange // keeps the listener stable without stale closures
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     useImperativeHandle(handle, () => ({
         reset: () => {
@@ -55,6 +60,13 @@ export const AltchaWidget = forwardRef<AltchaHandle, Props>(function AltchaWidge
 
     // v2 widget: the attribute is `challenge` (a URL or challenge data). `challengeurl` was v1.
     // Add other attributes here as needed: auto="onsubmit", type="checkbox", language="de", ...
+
+    // The custom element renders its UI into the light DOM when it upgrades. Mount it
+    // only after hydration so React never hydrates against widget-injected children.
+    if (!mounted) {
+        return null
+    }
+
     return <altcha-widget ref={widget} challenge={challengeUrl} {...widgetProps} />
 })
 
